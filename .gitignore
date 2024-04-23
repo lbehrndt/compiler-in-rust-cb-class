@@ -1,0 +1,9 @@
+# Rust related
+/target/
+Cargo.lock
+Cargo.toml.orig
+*.rlib
+*.rmeta
+
+# Mac OS related
+.DS_Store
