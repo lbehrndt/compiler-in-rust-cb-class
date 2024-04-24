@@ -3,7 +3,7 @@ use syntree::{Root, Calculator, Printer};
 fn main() -> Result<(), String> {
 	// collect the command line arguments
 	let args: Vec<String> = std::env::args().collect();
-	let expr = args.get(1).map_or("12+", |e| e);
+	let expr = args.get(1).map_or("52-5*", |e| e);
 	
 	// parse out the parse tree
 	let tree = match Root::from_str(expr) {
