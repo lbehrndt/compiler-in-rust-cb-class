@@ -55,24 +55,43 @@ impl Printer {
     /// formatted strings, and then concatenates these strings into a single
     /// result separated by newlines.
     pub fn format(&mut self, _t: &Root) -> String {
-        // perform dfs
-        // add parentethis to statements of type expr
-        // add no parentethis to assignemnts
         self.visit_root(_t);
         self.infix_notation.clone()
     }
 }
 
 impl Visitor for Printer {
-    fn visit_root(&mut self, r: &Root) {
-        for (i, stmt) in r.stmt_list.iter().enumerate() {
+    /// Visits the root of the parse tree, iterating through the statement list and
+    /// visiting each statement.
+    ///
+    /// ## Arguments
+    ///
+    /// * `root: Root` - The root of the tree to be visited.
+    ///
+    /// ## Example
+    ///
+    /// ```
+    /// // input (expr) = 1 2 3 + -
+    /// let tree = Root::from_str(expr);
+    ///
+    /// let mut printer = Printer::default();
+    /// println!("{}", printer.format(&tree))
+    /// // output = (1-(2+3))
+    /// ```
+    fn visit_root(&mut self, root: &Root) {
+        for (i, stmt) in root.stmt_list.iter().enumerate() {
             self.visit_stmt(stmt);
-            if i + 1 < r.stmt_list.len() {
+            if i + 1 < root.stmt_list.len() {
                 self.infix_notation += "\n";
             }
         }
     }
 
+    /// Visits a statement, appending its infix representation to the `infix_notation` string.
+    ///
+    /// ## Arguments
+    ///
+    /// * `stmt` - The stmt node to be visited.
     fn visit_stmt(&mut self, stmt: &Stmt) {
         match *stmt {
             Stmt::Expr(ref e) => self.visit_expr(e),
@@ -84,38 +103,28 @@ impl Visitor for Printer {
         }
     }
 
+    /// Visits an expression, appending its infix representation to the `infix_notation` string.
+    ///
+    /// ## Arguments
+    ///
+    /// * `expr` - The expression node to be visited.
     fn visit_expr(&mut self, expr: &Expr) {
         match *expr {
-            Expr::Int(ref i) => self.infix_notation += &i.to_string(),
-            Expr::Var(ref v) => {
-                self.infix_notation += "=";
-                self.infix_notation += &v.to_string();
-            }
-            Expr::Add(ref lhs, ref rhs) => {
+            Expr::Int(i) => self.infix_notation += &i.to_string(),
+            Expr::Var(_) => {}
+            Expr::Add(ref lhs, ref rhs)
+            | Expr::Sub(ref lhs, ref rhs)
+            | Expr::Mul(ref lhs, ref rhs)
+            | Expr::Div(ref lhs, ref rhs) => {
                 self.infix_notation += "(";
                 self.visit_expr(lhs);
-                self.infix_notation += "+";
-                self.visit_expr(rhs);
-                self.infix_notation += ")";
-            }
-            Expr::Sub(ref lhs, ref rhs) => {
-                self.infix_notation += "(";
-                self.visit_expr(lhs);
-                self.infix_notation += "-";
-                self.visit_expr(rhs);
-                self.infix_notation += ")";
-            }
-            Expr::Mul(ref lhs, ref rhs) => {
-                self.infix_notation += "(";
-                self.visit_expr(lhs);
-                self.infix_notation += "*";
-                self.visit_expr(rhs);
-                self.infix_notation += ")";
-            }
-            Expr::Div(ref lhs, ref rhs) => {
-                self.infix_notation += "(";
-                self.visit_expr(lhs);
-                self.infix_notation += "/";
+                self.infix_notation += match expr {
+                    Expr::Add(_, _) => "+",
+                    Expr::Sub(_, _) => "-",
+                    Expr::Mul(_, _) => "*",
+                    Expr::Div(_, _) => "/",
+                    _ => unreachable!(),
+                };
                 self.visit_expr(rhs);
                 self.infix_notation += ")";
             }
