@@ -16,7 +16,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+    - name: Filter Changed Files
+      id: filter
+      run: echo "::set-output name=changed_files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.rs$' || true)"
+    - name: Build and Test
+      if: steps.filter.outputs.changed_files != ''
+      run: |
+        echo "Changed Rust files: ${{ steps.filter.outputs.changed_files }}"
+        cargo build --verbose
+        cargo test --verbose
