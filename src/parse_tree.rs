@@ -90,55 +90,60 @@ impl Root {
     ///
     /// [reverse polish notation]: https://en.wikipedia.org/wiki/Reverse_Polish_notation
     pub fn from_str(str: &str) -> Result<Self, Error> {
+        // statements
         let mut stmt_list: Vec<Stmt> = Vec::new();
+        // expressions
         let mut expr_stack: Vec<Expr> = Vec::new();
 
-        for c in str.chars() {
-            match c {
-                c if c.is_whitespace() => {}
-                c if c.is_digit(10) => {
-                    expr_stack.push(Expr::Int(c.to_digit(10).unwrap().into()));
+        for token in str.chars() {
+            match token {
+                // Ignore whitespace
+                token if token.is_whitespace() => {}
+                
+                // Parse integer literals
+                token if token.is_digit(10) => {
+                    expr_stack.push(Expr::Int(token.to_digit(10).unwrap() as i64));
                 }
-                c if c.is_ascii_lowercase() => expr_stack.push(Expr::Var(c)),
-                '+' => {
-                    let right = Box::new(expr_stack.pop().unwrap());
-                    let left = Box::new(expr_stack.pop().unwrap());
-                    expr_stack.push(Expr::Add(left, right))
-                }
-                '-' => {
-                    let right = Box::new(expr_stack.pop().unwrap());
-                    let left = Box::new(expr_stack.pop().unwrap());
-                    expr_stack.push(Expr::Sub(left, right))
-                }
-                '*' => {
-                    let right = Box::new(expr_stack.pop().unwrap());
-                    let left = Box::new(expr_stack.pop().unwrap());
-                    expr_stack.push(Expr::Mul(left, right))
-                }
-                '/' => {
-                    let right = Box::new(expr_stack.pop().unwrap());
-                    let left = Box::new(expr_stack.pop().unwrap());
-                    expr_stack.push(Expr::Div(left, right))
-                }
-                '=' => {
-                    if let Some(right) = expr_stack.pop() {
-                        if let Some(Expr::Var(left)) = expr_stack.pop() {
-                            stmt_list.push(Stmt::Set(left, right));
-                        } else {
-                            return Err(Error::Semantic);
-                        }
+                // Parse variable names
+                token if token.is_ascii_lowercase() => expr_stack.push(Expr::Var(token)),
+
+                // Parse operation expressions
+                '+' | '-' | '*' | '/' => {
+                    if let (Some(rhs), Some(lhs)) = (expr_stack.pop(), expr_stack.pop()) {
+                        let operation = match token {
+                            '+' => Expr::Add(Box::new(lhs), Box::new(rhs)),
+                            '-' => Expr::Sub(Box::new(lhs), Box::new(rhs)),
+                            '*' => Expr::Mul(Box::new(lhs), Box::new(rhs)),
+                            '/' => Expr::Div(Box::new(lhs), Box::new(rhs)),
+                            _ => unreachable!(), // Shouldn't happen
+                        };
+                        expr_stack.push(operation)
                     } else {
                         return Err(Error::Syntax);
                     }
                 }
+
+                // Parse variable assignments
+                '=' => {
+                    if let (Some(rhs), Some(Expr::Var(lhs))) = (expr_stack.pop(), expr_stack.pop())
+                    {
+                        stmt_list.push(Stmt::Set(lhs, rhs));
+                    } else {
+                        return Err(Error::Semantic);
+                    }
+                }
+
+                // Handle unrecognized characters as lexical errors
                 _ => return Err(Error::Lexical),
             }
         }
 
+        // Push the remaining expression onto the statement list
         if let Some(expr) = expr_stack.pop() {
             stmt_list.push(Stmt::Expr(expr));
         }
 
+        // Check for any remaining expressions in the stack (syntax error)
         if !expr_stack.is_empty() {
             return Err(Error::Syntax);
         } else {
