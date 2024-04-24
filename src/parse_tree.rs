@@ -90,7 +90,6 @@ impl Root {
     ///
     /// [reverse polish notation]: https://en.wikipedia.org/wiki/Reverse_Polish_notation
     pub fn from_str(str: &str) -> Result<Self, Error> {
-        // TODO: Funktionskörper vervollständigen
         let mut stmt_list: Vec<Stmt> = Vec::new();
         let mut expr_stack: Vec<Expr> = Vec::new();
 
