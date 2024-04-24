@@ -28,8 +28,6 @@
 //! println!("{}", output); // prints a=(3+5)
 //! ```
 
-use std::{borrow::Borrow, mem::replace};
-
 use crate::parse_tree::*;
 
 /// `Printer` is a struct used for formatting parse trees into human-readable
@@ -67,8 +65,11 @@ impl Printer {
 
 impl Visitor for Printer {
     fn visit_root(&mut self, r: &Root) {
-        for stmt in r.stmt_list.iter() {
+        for (i, stmt) in r.stmt_list.iter().enumerate() {
             self.visit_stmt(stmt);
+            if i + 1 < r.stmt_list.len() {
+                self.infix_notation += "\n";
+            }
         }
     }
 
