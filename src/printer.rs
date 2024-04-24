@@ -97,7 +97,6 @@ impl Visitor for Printer {
             Stmt::Expr(ref e) => self.visit_expr(e),
             Stmt::Set(ref var, ref expr) => {
                 self.infix_notation += &var.to_string();
-                self.infix_notation += "=";
                 self.visit_expr(expr);
             }
         }
