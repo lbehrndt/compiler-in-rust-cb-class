@@ -97,6 +97,7 @@ impl Visitor for Printer {
             Stmt::Expr(ref e) => self.visit_expr(e),
             Stmt::Set(ref var, ref expr) => {
                 self.infix_notation += &var.to_string();
+                self.infix_notation += "=";
                 self.visit_expr(expr);
             }
         }
@@ -110,7 +111,7 @@ impl Visitor for Printer {
     fn visit_expr(&mut self, expr: &Expr) {
         match *expr {
             Expr::Int(i) => self.infix_notation += &i.to_string(),
-            Expr::Var(_) => {}
+            Expr::Var(v) => self.infix_notation += &v.to_string(),
             Expr::Add(ref lhs, ref rhs)
             | Expr::Sub(ref lhs, ref rhs)
             | Expr::Mul(ref lhs, ref rhs)
@@ -165,5 +166,19 @@ mod tests {
     fn set() {
         let tree = Root::from_stmt(Stmt::set('a', 1));
         assert_eq!(Printer::default().format(&tree), "a=1");
+    }
+
+    #[test]
+    fn use_var() {
+        let tree = Root {
+            stmt_list: vec![
+                Stmt::set('a', 2),
+                Stmt::Expr(Expr::Add(
+                    Box::new(Expr::Var('a')),
+                    Box::new(Expr::Var('1')),
+                )),
+            ],
+        };
+        assert_eq!(Printer::default().format(&tree), "a=2\n(a+1)");
     }
 }
