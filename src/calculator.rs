@@ -15,6 +15,8 @@
 //! println!("Final result: {}", result); // prints 7
 //! ```
 
+use std::collections::HashMap;
+
 use crate::parse_tree::*;
 
 /// `Calculator` is a struct designed to evaluate parsed arithmetic expressions.
@@ -27,72 +29,129 @@ use crate::parse_tree::*;
 /// let result = calculator.calc(&root);
 /// println!("The result of the calculation is: {}", result);
 /// # }
-/// ```
-#[derive(Default)]
+/// ``````
 pub struct Calculator {
+    /// The solution of the calculation.
     solution: i64,
+    /// A HashMap to store variable assignments.
+    variables: HashMap<char, i64>,
+}
+
+impl Default for Calculator {
+    /// Creates a new `Calculator` instance with default values.
+    fn default() -> Self {
+        Self {
+            solution: 0,
+            variables: HashMap::with_capacity(26), // Initialize HashMap with capacity 26 for lowercase alphabet variables
+        }
+    }
 }
 
 impl Calculator {
     /// Evaluates the entire parse tree starting from a [`Root`] and returns the
     /// result of the last expression evaluated.
+    ///
+    /// ## Arguments
+    ///
+    /// * `_t` - The root of the parse tree.
+    ///
+    /// ## Returns
+    ///
+    /// The result of the evaluation.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use calculator::{Calculator, Root};
+    ///
+    /// let mut calc = Calculator::default();
+    /// let root = Root::from_stmt(Stmt::add(4, 2));
+    /// assert_eq!(calc.calc(&root), 6);
+    /// ```
     pub fn calc(&mut self, _t: &Root) -> i64 {
         self.visit_root(_t);
         self.solution
     }
 
-    fn evaluate_expr(&mut self, lhs: &Expr, rhs: &Expr) -> (i64, i64) {
-        self.visit_expr(&lhs);
+    /// Evaluates a binary expression and returns the values of its operands as a tuple.
+    fn evaluate_binary_expression(&mut self, lhs: &Expr, rhs: &Expr) -> (i64, i64) {
+        self.visit_expr(lhs);
         let lhs_val = self.solution;
-        self.visit_expr(&rhs);
+        self.visit_expr(rhs);
         let rhs_val = self.solution;
+
         (lhs_val, rhs_val)
+    }
+
+    /// Performs addition operation on two expressions.
+    fn bin_add(&mut self, lhs: &Expr, rhs: &Expr) {
+        let (left, right) = self.evaluate_binary_expression(lhs, rhs);
+
+        self.solution = left + right;
+    }
+
+    /// Performs subtraction operation on two expressions.
+    fn bin_sub(&mut self, lhs: &Expr, rhs: &Expr) {
+        let (left, right) = self.evaluate_binary_expression(lhs, rhs);
+
+        self.solution = left - right;
+    }
+
+    /// Performs multiplication operation on two expressions.
+    fn bin_mul(&mut self, lhs: &Expr, rhs: &Expr) {
+        let (left, right) = self.evaluate_binary_expression(lhs, rhs);
+
+        self.solution = left * right;
+    }
+
+    /// Performs division operation on two expressions.
+    fn bin_div(&mut self, lhs: &Expr, rhs: &Expr) {
+        let (left, right) = self.evaluate_binary_expression(lhs, rhs);
+        if right == 0 {
+            panic!("Attempt to divide by zero");
+        }
+
+        self.solution = left / right;
     }
 }
 
 impl Visitor for Calculator {
+    /// Visits the root of the parse tree.
     fn visit_root(&mut self, root: &Root) {
         for stmt in root.stmt_list.iter() {
             self.visit_stmt(stmt);
         }
     }
 
+    /// Visits a statement in the parse tree.
     fn visit_stmt(&mut self, stmt: &Stmt) {
-        match *stmt {
+        match stmt {
             Stmt::Expr(ref e) => self.visit_expr(e),
-            Stmt::Set(_, _) => todo!("Variable assignemnt not yet supported."),
+            Stmt::Set(v, e) => {
+                self.visit_expr(e);
+                self.variables.insert(*v, self.solution); // add variable to hashmap
+            }
         }
     }
 
+    /// Visits an expression in the parse tree.
+    ///
+    /// This method recursively evaluates the expression by visiting its sub-expressions
+    /// and updating the solution accordingly.
     fn visit_expr(&mut self, expr: &Expr) {
         match expr {
             Expr::Int(i) => self.solution = *i,
-            Expr::Var(_) => {}
-            Expr::Add(lhs, rhs) => {
-                let (lhs_val, rhs_val) = self.evaluate_expr(lhs, rhs);
-                self.solution = lhs_val + rhs_val
+            Expr::Var(v) => {
+                if let Some(val) = self.variables.get(v) {
+                    self.solution = *val;
+                } else {
+                    panic!("Variable '{}' is not defined", v);
+                }
             }
-            Expr::Sub(lhs, rhs) => {
-                self.visit_expr(&lhs);
-                let lhs_val = self.solution;
-                self.visit_expr(&rhs);
-                let rhs_val = self.solution;
-                self.solution = lhs_val - rhs_val;
-            }
-            Expr::Mul(lhs, rhs) => {
-                self.visit_expr(&lhs);
-                let lhs_val = self.solution;
-                self.visit_expr(&rhs);
-                let rhs_val = self.solution;
-                self.solution = lhs_val * rhs_val;
-            }
-            Expr::Div(lhs, rhs) => {
-                self.visit_expr(&lhs);
-                let lhs_val = self.solution;
-                self.visit_expr(&rhs);
-                let rhs_val = self.solution;
-                self.solution = lhs_val / rhs_val;
-            }
+            Expr::Add(lhs, rhs) => self.bin_add(lhs, rhs),
+            Expr::Sub(lhs, rhs) => self.bin_sub(lhs, rhs),
+            Expr::Mul(lhs, rhs) => self.bin_mul(lhs, rhs),
+            Expr::Div(lhs, rhs) => self.bin_div(lhs, rhs),
         }
     }
 }
