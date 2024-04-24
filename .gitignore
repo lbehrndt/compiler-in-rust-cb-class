@@ -1,9 +1,27 @@
-# Rust related
+# Compiled files
 /target/
-Cargo.lock
-Cargo.toml.orig
-*.rlib
-*.rmeta
 
-# Mac OS related
+# Dependency directories
+Cargo.lock
+/vendor/
+
+# IDE/Editor specific files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Other
+*.swp
+*.log
 .DS_Store
+Thumbs.db
+
+# Windows specific
+desktop.ini
+thumbs.db
