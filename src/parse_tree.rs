@@ -99,7 +99,7 @@ impl Root {
             match token {
                 // Ignore whitespace
                 token if token.is_whitespace() => {}
-                
+
                 // Parse integer literals
                 token if token.is_digit(10) => {
                     expr_stack.push(Expr::Int(token.to_digit(10).unwrap() as i64));
@@ -109,6 +109,7 @@ impl Root {
 
                 // Parse operation expressions
                 '+' | '-' | '*' | '/' => {
+                    // first popped is right to assert correct non-commutative operations
                     if let (Some(rhs), Some(lhs)) = (expr_stack.pop(), expr_stack.pop()) {
                         let operation = match token {
                             '+' => Expr::Add(Box::new(lhs), Box::new(rhs)),
@@ -125,8 +126,10 @@ impl Root {
 
                 // Parse variable assignments
                 '=' => {
+                    // first popped is right to assert correct variable assignemnt
                     if let (Some(rhs), Some(Expr::Var(lhs))) = (expr_stack.pop(), expr_stack.pop())
                     {
+                        // an assignemnt is not defined as an expression
                         stmt_list.push(Stmt::Set(lhs, rhs));
                     } else {
                         return Err(Error::Semantic);
