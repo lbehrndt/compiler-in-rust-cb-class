@@ -21,6 +21,6 @@ jobs:
         run: |
           for file in ${ALL_CHANGED_FILES}; do
             if [[ $file == *.rs ]]; then
-              cargo test "$file"
+              cargo test
             fi
           done
