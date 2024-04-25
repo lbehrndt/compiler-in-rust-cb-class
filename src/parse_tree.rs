@@ -98,27 +98,45 @@ impl Root {
 			match c {
 				c if c.is_whitespace() => {}
 				c if c.is_digit(10) => {
-					todo!("Ziffer in Zahl konvertieren und auf den Stapel legen")
+					if let Some(digit) = c.to_digit(10) {
+						expr_stack.push(Expr::Int(digit as i64));
+					} 
 				}
 				c if c.is_ascii_lowercase() => {
-					todo!("Variablenname auf den Stapel legen")
+					expr_stack.push(Expr::Var(c));
 				}
+
 				'+' => {
-					todo!("Additionsknoten auf den Stapel legen")
+					if let (Some(right), Some(left)) = (expr_stack.pop(), expr_stack.pop()) {
+						expr_stack.push(Expr::Add(Box::new(left), Box::new(right)));
+					}
 				}
 				'-' => {
-					todo!("Subtraktionsknoten auf den Stapel legen")
+					if let (Some(right), Some(left)) = (expr_stack.pop(), expr_stack.pop()) {
+						expr_stack.push(Expr::Sub(Box::new(left), Box::new(right)));
+					}
 				}
 				'*' => {
-					todo!("Multiplikationsknoten auf den Stapel legen")
+					if let (Some(right), Some(left)) = (expr_stack.pop(), expr_stack.pop()) {
+						expr_stack.push(Expr::Mul(Box::new(left), Box::new(right)));
+					}
 				}
 				'/' => {
-					todo!("Divisionsknoten auf den Stapel legen")
+					if let (Some(right), Some(left)) = (expr_stack.pop(), expr_stack.pop()) {
+						expr_stack.push(Expr::Div(Box::new(left), Box::new(right)));
+					}
 				}
 				'=' => {
-					todo!("Zuweisungsknoten auf den Stapel legen");
+					if let (Some(expr), Some(var)) = (expr_stack.pop(), expr_stack.pop()) {
+						if let Expr::Var(c) = var {
+							stmt_list.push(Stmt::Set(c, expr));
+						}
+						else {
+							return Err(Error::Semantic);
+						}
+					}
 				}
-				_ => todo!("geeigneten Fehlercode zurückgeben"),
+				_ => return Err(Error::Lexical),
 			}
 		}
 		
@@ -127,7 +145,8 @@ impl Root {
 		}
 		
 		if !expr_stack.is_empty() {
-			todo!("geeigneten Fehlercode zurückgeben")
+			//Gar nicht sicher welcher Typ von Error hier sein muss
+			return Err(Error::Semantic);
 		} else {
 			Ok(Root { stmt_list })
 		}
