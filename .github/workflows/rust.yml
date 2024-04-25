@@ -7,11 +7,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set up a Rust toolchain
-        uses: hecrj/setup-rust-action@v2.0.1
-        with:
-          rust-version: ${{ matrix.rust }}
-
       - name: Get edited files
         id: edited_files
         run: |
