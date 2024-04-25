@@ -73,45 +73,14 @@ impl Calculator {
         self.solution
     }
 
-    /// Evaluates a binary expression and returns the values of its operands as a tuple.
-    fn evaluate_binary_expression(&mut self, lhs: &Expr, rhs: &Expr) -> (i64, i64) {
+    /// Perform a given binary expression and add it to te solution.
+    fn perform_binary_operation(&mut self, lhs: &Expr, rhs: &Expr, bin_op: fn(i64, i64) -> i64) {
         self.visit_expr(lhs);
         let lhs_val = self.solution;
         self.visit_expr(rhs);
         let rhs_val = self.solution;
 
-        (lhs_val, rhs_val)
-    }
-
-    /// Performs addition operation on two expressions.
-    fn bin_add(&mut self, lhs: &Expr, rhs: &Expr) {
-        let (left, right) = self.evaluate_binary_expression(lhs, rhs);
-
-        self.solution = left + right;
-    }
-
-    /// Performs subtraction operation on two expressions.
-    fn bin_sub(&mut self, lhs: &Expr, rhs: &Expr) {
-        let (left, right) = self.evaluate_binary_expression(lhs, rhs);
-
-        self.solution = left - right;
-    }
-
-    /// Performs multiplication operation on two expressions.
-    fn bin_mul(&mut self, lhs: &Expr, rhs: &Expr) {
-        let (left, right) = self.evaluate_binary_expression(lhs, rhs);
-
-        self.solution = left * right;
-    }
-
-    /// Performs division operation on two expressions.
-    fn bin_div(&mut self, lhs: &Expr, rhs: &Expr) {
-        let (left, right) = self.evaluate_binary_expression(lhs, rhs);
-        if right == 0 {
-            panic!("Attempt to divide by zero");
-        }
-
-        self.solution = left / right;
+        self.solution = bin_op(lhs_val, rhs_val)
     }
 }
 
@@ -148,10 +117,23 @@ impl Visitor for Calculator {
                     panic!("Variable '{}' is not defined", v);
                 }
             }
-            Expr::Add(lhs, rhs) => self.bin_add(lhs, rhs),
-            Expr::Sub(lhs, rhs) => self.bin_sub(lhs, rhs),
-            Expr::Mul(lhs, rhs) => self.bin_mul(lhs, rhs),
-            Expr::Div(lhs, rhs) => self.bin_div(lhs, rhs),
+            Expr::Add(lhs, rhs) => {
+                self.perform_binary_operation(lhs, rhs, |lhs_val, rhs_val| lhs_val + rhs_val)
+            }
+            Expr::Sub(lhs, rhs) => {
+                self.perform_binary_operation(lhs, rhs, |lhs_val, rhs_val| lhs_val - rhs_val)
+            }
+            Expr::Mul(lhs, rhs) => {
+                self.perform_binary_operation(lhs, rhs, |lhs_val, rhs_val| lhs_val * rhs_val)
+            }
+            Expr::Div(lhs, rhs) => {
+                if let Expr::Int(rhs_value) = **rhs {
+                    if rhs_value == 0 {
+                        panic!("Attempt to divide by zero.")
+                    }
+                }
+                self.perform_binary_operation(lhs, rhs, |lhs_val, rhs_val| lhs_val / rhs_val)
+            }
         }
     }
 }
