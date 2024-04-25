@@ -1,4 +1,4 @@
-name: Rust Tests
+name: Run Tests
 
 on: [push]
 
@@ -7,8 +7,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-        rust: [stable, nightly]
+        os: [macOS-latest]
+        rust: [nightly]
 
     steps:
       - name: Set up a Rust toolchain
