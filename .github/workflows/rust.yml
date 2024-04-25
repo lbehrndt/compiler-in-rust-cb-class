@@ -1,24 +1,26 @@
-name: Rust
+name: Run Tests
 
 on: [push, pull_request]
-env:
-  CARGO_TERM_COLOR: always
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Filter Changed Files
-      id: filter
-      run: echo "$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.rs$' || true)" > changed_files.txt
-    - name: Build and Test
-      if: steps.filter.outputs.changed_files != ''
-      run: |
-        echo "Changed Rust files: ${{ steps.filter.outputs.changed_files }}"
-        cargo build --verbose
-        cargo test --verbose
+      - name: Set up a Rust toolchain
+        uses: hecrj/setup-rust-action@v2.0.1
+        with:
+          rust-version: ${{ matrix.rust }}
 
-        name: Run Tests
+      - name: Get edited files
+        id: edited_files
+        run: |
+          git diff-tree --no-commit-id --name-only ${{github.sha}} -r > edited_files.txt
+        if: ${{ steps.edited_files.outputs.files != '' }}
+
+      - name: Run tests for edited files
+        run: |
+          xargs -I {} cargo test --verbose --manifest-path={}
+        shell: bash
+        env:
+          FILE_PATHS: ${{ steps.read_files.outputs.stdout }}
