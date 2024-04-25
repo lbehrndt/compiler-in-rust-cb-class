@@ -63,21 +63,6 @@ impl Printer {
 impl Visitor for Printer {
     /// Visits the root of the parse tree, iterating through the statement list and
     /// visiting each statement.
-    ///
-    /// ## Arguments
-    ///
-    /// * `root: Root` - The root of the tree to be visited.
-    ///
-    /// ## Example
-    ///
-    /// ```
-    /// // input (expr) = 1 2 3 + -
-    /// let tree = Root::from_str(expr);
-    ///
-    /// let mut printer = Printer::default();
-    /// println!("{}", printer.format(&tree))
-    /// // output = (1-(2+3))
-    /// ```
     fn visit_root(&mut self, root: &Root) {
         for (i, stmt) in root.stmt_list.iter().enumerate() {
             self.visit_stmt(stmt);
