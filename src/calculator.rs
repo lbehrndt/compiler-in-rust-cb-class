@@ -107,11 +107,11 @@ impl Calculator {
     /// Performs division operation on two expressions.
     fn bin_div(&mut self, lhs: &Expr, rhs: &Expr) {
         let (left, right) = self.evaluate_binary_expression(lhs, rhs);
-        /* if right == 0 {
+        if right == 0 {
             panic!("Attempt to divide by zero");
         }
 
-        self.solution = left / right; */
+        self.solution = left / right;
     }
 }
 

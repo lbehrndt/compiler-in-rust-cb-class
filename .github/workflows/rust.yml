@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run Tests in changed file
 
 on: [push, pull_request]
 
@@ -17,7 +17,7 @@ jobs:
         uses: tj-actions/changed-files@v44
       - name: Run test on changed files
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
         run: |
           for file in ${ALL_CHANGED_FILES}; do
             if [[ $file == *.rs ]]; then
