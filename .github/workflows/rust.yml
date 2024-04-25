@@ -7,25 +7,20 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout sources
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
+      # -----------------------------------------------------------------------------------------------------------
+      # GET CHANGED FILES
+      # -----------------------------------------------------------------------------------------------------------
       - name: Get changed files
-        id: get_changed_files
+        id: changed-files
+        uses: tj-actions/changed-files@v44
+      - name: Run test on changed files
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
         run: |
-          git diff --no-commit-id --name-only ${{ github.base_ref }} ${{ github.sha }} > changed_files.txt
-  
-      - name: Run cargo test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: |
-            $(echo "${{ steps.get_changed_files.outputs.changed_files }}" | xargs -I{} echo "{}")
-      
+          for file in ${ALL_CHANGED_FILES}; do
+            if [[ $file == *.rs ]]; then
+              cargo test "$file"
+            fi
+          done
