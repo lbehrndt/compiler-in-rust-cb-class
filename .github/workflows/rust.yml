@@ -20,4 +20,4 @@ jobs:
           xargs -I {} cargo test --verbose --manifest-path={}
         shell: bash
         env:
-          FILE_PATHS: ${{ steps.edited_files.outputs.stdout != '' }}
+          FILE_PATHS: ${{ steps.edited_files.outputs.stdout }}
