@@ -11,11 +11,10 @@ jobs:
         id: edited_files
         run: |
           git diff-tree --no-commit-id --name-only ${{github.sha}} -r > edited_files.txt
-        if: ${{ steps.edited_files.outputs.files != '' }}
-
+        
       - name: Run tests for edited files
         run: |
           xargs -I {} cargo test --verbose --manifest-path={}
         shell: bash
         env:
-          FILE_PATHS: ${{ steps.read_files.outputs.stdout }}
+          FILE_PATHS: ${{ steps.edited_files.outputs.stdout != '' }}
