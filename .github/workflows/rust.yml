@@ -13,11 +13,10 @@ jobs:
       - name: Get edited files
         id: edited_files
         run: |
-          git diff-tree --no-commit-id --name-only ${{github.sha}} -r > edited_files.txt
-        
+          git diff-tree --no-commit-id --name-only ${{ github.sha }} -r > edited_files.txt
+              
       - name: Run tests for edited files
         run: |
-          xargs -I {} cargo test --verbose --manifest-path={}
+          cat edited_files.txt | xargs -I {} cargo test --verbose --manifest-path={}
         shell: bash
-        env:
-          FILE_PATHS: ${{ steps.edited_files.outputs.stdout }}
+      
