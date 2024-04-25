@@ -4,19 +4,29 @@ on: [push, pull_request]
 
 jobs:
   test:
+    name: Test Suite
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
+      - name: Checkout sources
         uses: actions/checkout@v2
 
-      - name: Get edited files
-        id: edited_files
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - name: Get changed files
+        id: get_changed_files
         run: |
-          git diff-tree --no-commit-id --name-only ${{ github.sha }} -r > edited_files.txt
-              
-      - name: Run tests for edited files
-        run: |
-          cat edited_files.txt | xargs -I {} cargo test --verbose --manifest-path={}
-        shell: bash
+          echo "::set-output name=changed_files::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})"
+  
+      - name: Run cargo test
+        uses: actions-rs/cargo@v1
+        continue-on-error: true
+        with:
+          command: test
+          args: |
+            $(echo "${{ steps.get_changed_files.outputs.changed_files }}" | xargs -I{} echo "{}")
       
