@@ -26,7 +26,7 @@ jobs:
       - name: Run tests if changes found
         if: ${{ steps.changed-files.outputs.all_changed_files != '' || github.event_name == 'pull_request' }}
         run: |
-          if [ -n "$CHANGED_FILES" ] && echo "$CHANGED_FILES" | grep -q '\.rs$'; then
+          if [ -n "$CHANGED_FILES" ] && echo "$CHANGED_FILES" | grep -q '*.rs$'; then
             echo "Changed files found: $CHANGED_FILES"
             cargo test
           else
