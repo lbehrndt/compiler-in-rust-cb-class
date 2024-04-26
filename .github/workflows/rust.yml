@@ -1,4 +1,4 @@
-name: Run Tests in changed file
+name: Run Tests on src files
 
 on: [push, pull_request]
 
@@ -11,16 +11,17 @@ jobs:
 
       # Check if any files have changed
       - name: Get changed files
-        id: changed-rust-files
+        id: changed-src-files
         uses: tj-actions/changed-files@v44
         with:
           files_yaml: |
-            **.rs
+            src: 
+              src/**
 
       - name: List all changed files
-        if: steps.changed-rust-files.outputs.any_changed == 'true'
+        if: steps.changed-src-files.outputs.any_changed == 'true'
         env:
-          ALL_CHANGED_FILES: ${{ steps.changed-rust-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES: ${{ steps.changed-src-files.outputs.all_changed_files }}
         run: |
           for file in ${ALL_CHANGED_FILES}; do
             echo "$file was changed"
@@ -28,6 +29,6 @@ jobs:
 
       # Run tests only if files have changed, or return true if no changes
       - name: Run tests if changes found
-        if: steps.changed-rust-files.outputs.any_changed == 'true'
+        if: steps.changed-src-files.outputs.any_changed == 'true'
         run: |
           cargo test
