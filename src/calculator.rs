@@ -98,7 +98,8 @@ impl Visitor for Calculator {
             Stmt::Expr(ref e) => self.visit_expr(e),
             Stmt::Set(v, e) => {
                 self.visit_expr(e);
-                self.variables.insert(*v, self.solution); // add variable to hashmap
+                self.variables.insert(*v, self.solution); // declare variable as hashmap value
+                self.solution = 0; // after setting the variable we don't want to add it to any operation
             }
         }
     }
@@ -129,7 +130,7 @@ impl Visitor for Calculator {
             Expr::Div(lhs, rhs) => {
                 if let Expr::Int(rhs_value) = **rhs {
                     if rhs_value == 0 {
-                        panic!("Attempt to divide by zero.")
+                        panic!("attempt to divide by zero.")
                     }
                 }
                 self.perform_binary_operation(lhs, rhs, |lhs_val, rhs_val| lhs_val / rhs_val)
