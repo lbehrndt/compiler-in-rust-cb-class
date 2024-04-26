@@ -1,4 +1,4 @@
-name: Run Tests on src files
+name: Run Tests
 
 on: [push, pull_request]
 
@@ -8,27 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      # Check if any files have changed
-      - name: Get changed files
-        id: changed-src-files
-        uses: tj-actions/changed-files@v44
-        with:
-          files_yaml: |
-            src: 
-              src/**
-
-      - name: List all changed files
-        if: steps.changed-src-files.outputs.any_changed == 'true'
-        env:
-          ALL_CHANGED_FILES: ${{ steps.changed-src-files.outputs.all_changed_files }}
-        run: |
-          for file in ${ALL_CHANGED_FILES}; do
-            echo "$file was changed"
-          done
-
-      # Run tests only if files have changed, or return true if no changes
-      - name: Run tests if changes found
-        if: steps.changed-src-files.outputs.any_changed == 'true'
+      - name: cargo test
         run: |
           cargo test
