@@ -1,20 +1,13 @@
 name: Run Tests
 
-on: [push]
+on: [pull_request]
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macOS-latest]
-        rust: [nightly]
-
+    name: Test Suite
+    runs-on: ubuntu-latest
     steps:
-      - name: Set up a Rust toolchain
-        uses: hecrj/setup-rust-action@v2.0.1
-        with:
-          rust-version: ${{ matrix.rust }}
-      - uses: actions/checkout@master
-      - name: Run tests
-        run: cargo test --verbose
+      - uses: actions/checkout@v2
+      - name: cargo test
+        run: |
+          cargo test

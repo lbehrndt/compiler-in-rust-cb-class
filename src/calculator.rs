@@ -184,6 +184,7 @@ mod tests {
 
     #[test]
     fn vars() {
+        // test
         let tree = Root {
             stmt_list: vec![
                 Stmt::set('i', 1),
