@@ -12,7 +12,9 @@ jobs:
       # Check if any files have changed
       - name: Check for changed files
         id: check_files
-        run: echo ::set-output name=changed::$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        run: |
+          export CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "Changed files: $CHANGED_FILES"
 
       # Run tests only if files have changed, or return true if no changes
       - name: Run tests if changes found
