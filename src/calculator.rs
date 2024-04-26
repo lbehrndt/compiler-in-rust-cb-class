@@ -109,9 +109,9 @@ impl Calculator {
         let (left, right) = self.evaluate_binary_expression(lhs, rhs);
         if right == 0 {
             panic!("Attempt to divide by zero");
+        } else {
+            self.solution = left / right;
         }
-
-        self.solution = left / right;
     }
 }
 
