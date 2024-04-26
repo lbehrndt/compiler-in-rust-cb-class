@@ -123,7 +123,7 @@ impl Root {
                     }
                 }
 
-                /* // Parse variable assignments
+                // Parse variable assignments
                 '=' => {
                     if let (Some(rhs), Some(Expr::Var(lhs))) = (expr_stack.pop(), expr_stack.pop())
                     {
@@ -131,7 +131,7 @@ impl Root {
                     } else {
                         return Err(Error::Semantic);
                     }
-                } */
+                }
 
                 // Handle unrecognized characters as lexical errors
                 _ => return Err(Error::Lexical),
