@@ -143,58 +143,58 @@ impl Visitor for Calculator {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    #[test]
-    fn add() {
-        let tree = Root::from_stmt(Stmt::add(4, 2));
-        assert_eq!(Calculator::default().calc(&tree), 6);
-    }
-
-    #[test]
-    fn sub() {
-        let tree = Root::from_stmt(Stmt::sub(4, 2));
-        assert_eq!(Calculator::default().calc(&tree), 2);
-    }
-
-    #[test]
-    fn mul() {
-        let tree = Root::from_stmt(Stmt::mul(4, 2));
-        assert_eq!(Calculator::default().calc(&tree), 8);
-    }
-
-    #[test]
-    fn div() {
-        let tree = Root::from_stmt(Stmt::div(4, 2));
-        assert_eq!(Calculator::default().calc(&tree), 2);
-    }
-
-    #[test]
-    #[should_panic(expected = "attempt to divide by zero")]
-    fn division_by_zero() {
-        let tree = Root::from_stmt(Stmt::div(4, 0));
-        Calculator::default().calc(&tree);
-    }
-
-    #[test]
-    fn set() {
-        let tree = Root::from_stmt(Stmt::set('a', 1));
-        assert_eq!(Calculator::default().calc(&tree), 0);
-    }
-
-    #[test]
-    fn vars() {
+	use super::*;
+	
+	#[test]
+	fn add() {
+		let tree = Root::from_stmt(Stmt::add(4, 2));
+		assert_eq!(Calculator::default().calc(&tree), 6);
+	}
+	
+	#[test]
+	fn sub() {
+		let tree = Root::from_stmt(Stmt::sub(4, 2));
+		assert_eq!(Calculator::default().calc(&tree), 2);
+	}
+	
+	#[test]
+	fn mul() {
+		let tree = Root::from_stmt(Stmt::mul(4, 2));
+		assert_eq!(Calculator::default().calc(&tree), 8);
+	}
+	
+	#[test]
+	fn div() {
+		let tree = Root::from_stmt(Stmt::div(4, 2));
+		assert_eq!(Calculator::default().calc(&tree), 2);
+	}
+	
+	#[test]
+	#[should_panic(expected = "attempt to divide by zero")]
+	fn division_by_zero() {
+		let tree = Root::from_stmt(Stmt::div(4, 0));
+		Calculator::default().calc(&tree);
+	}
+	
+	#[test]
+	fn set() {
+		let tree = Root::from_stmt(Stmt::set('a', 1));
+		assert_eq!(Calculator::default().calc(&tree), 0);
+	}
+	
+	#[test]
+	fn vars() {
         // test
-        let tree = Root {
-            stmt_list: vec![
-                Stmt::set('i', 1),
-                Stmt::set('j', 2),
-                Stmt::Expr(Expr::Add(
-                    Box::new(Expr::Var('i')),
-                    Box::new(Expr::Var('j')),
-                )),
-            ],
-        };
-        assert_eq!(Calculator::default().calc(&tree), 3);
-    }
+		let tree = Root {
+			stmt_list: vec![
+				Stmt::set('i', 1),
+				Stmt::set('j', 2),
+				Stmt::Expr(Expr::Add(
+					Box::new(Expr::Var('i')),
+					Box::new(Expr::Var('j')),
+				)),
+			],
+		};
+		assert_eq!(Calculator::default().calc(&tree), 3);
+	}
 }
