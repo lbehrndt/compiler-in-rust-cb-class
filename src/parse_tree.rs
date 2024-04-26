@@ -102,7 +102,9 @@ impl Root {
 
                 // Parse integer literals
                 token if token.is_digit(10) => {
-                    expr_stack.push(Expr::Int(token.to_digit(10).unwrap() as i64));
+                    if let Some(int) = token.to_digit(10) {
+                        expr_stack.push(Expr::Int(int as i64));
+                    }
                 }
                 // Parse variable names
                 token if token.is_ascii_lowercase() => expr_stack.push(Expr::Var(token)),
