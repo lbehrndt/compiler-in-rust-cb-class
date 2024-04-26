@@ -118,6 +118,7 @@ impl Root {
                             '-' => Expr::Sub(Box::new(lhs), Box::new(rhs)),
                             '*' => Expr::Mul(Box::new(lhs), Box::new(rhs)),
                             '/' => Expr::Div(Box::new(lhs), Box::new(rhs)),
+							/* Because we don't have a token type for only operations and are not allowed to add one afaik. */
                             _ => unreachable!(), // Shouldn't happen
                         };
                         expr_stack.push(operation)
