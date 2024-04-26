@@ -7,20 +7,12 @@ jobs:
     name: Test Suite
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      # -----------------------------------------------------------------------------------------------------------
-      # GET CHANGED FILES
-      # -----------------------------------------------------------------------------------------------------------
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v44
-      - name: Run test on changed files
-        env:
-          ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
-        run: |
-          for file in ${ALL_CHANGED_FILES}; do
-            if [[ $file == *.rs ]]; then
-              cargo test
-            fi
-          done
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
