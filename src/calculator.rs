@@ -43,7 +43,6 @@ impl Calculator {
 
 impl Visitor for Calculator {
 	// TODO: relevante Methoden überschreiben
-    //test
 }
 
 // unit-tests
