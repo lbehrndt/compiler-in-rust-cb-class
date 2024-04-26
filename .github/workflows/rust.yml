@@ -16,7 +16,6 @@ jobs:
         with:
           files_yaml: |
             src:
-              - '**.rs'
               - src/**
 
       - name: List all changed files
