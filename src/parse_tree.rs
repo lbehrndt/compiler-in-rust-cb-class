@@ -155,7 +155,8 @@ impl Root {
     }
 }
 
-/// Provides a visitor for traversing the parse tree.
+/// Provides a visitor for traversing the parse tree following the Depth-first search
+/// algorithm.
 ///
 /// This trait should be implemented by any type that needs to perform
 /// operations on the parse tree.
