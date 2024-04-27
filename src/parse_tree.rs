@@ -106,25 +106,18 @@ impl Root {
 					expr_stack.push(Expr::Var(c));
 				}
 
-				'+' => {
-					if let (Some(right), Some(left)) = (expr_stack.pop(), expr_stack.pop()) {
-						expr_stack.push(Expr::Add(Box::new(left), Box::new(right)));
-					}
-				}
-				'-' => {
-					if let (Some(right), Some(left)) = (expr_stack.pop(), expr_stack.pop()) {
-						expr_stack.push(Expr::Sub(Box::new(left), Box::new(right)));
-					}
-				}
-				'*' => {
-					if let (Some(right), Some(left)) = (expr_stack.pop(), expr_stack.pop()) {
-						expr_stack.push(Expr::Mul(Box::new(left), Box::new(right)));
-					}
-				}
-				'/' => {
-					if let (Some(right), Some(left)) = (expr_stack.pop(), expr_stack.pop()) {
-						expr_stack.push(Expr::Div(Box::new(left), Box::new(right)));
-					}
+				'+' | '-' | '*' | '/' => {
+                    // first popped is right to assert correct non-commutative operations
+                    if let (Some(rhs), Some(lhs)) = (expr_stack.pop(), expr_stack.pop()) {
+                        let operation = match c {
+                            '+' => Expr::Add(Box::new(lhs), Box::new(rhs)),
+                            '-' => Expr::Sub(Box::new(lhs), Box::new(rhs)),
+                            '*' => Expr::Mul(Box::new(lhs), Box::new(rhs)),
+                            '/' => Expr::Div(Box::new(lhs), Box::new(rhs)),
+                            _ => unreachable!(), // Shouldn't happen
+                        };
+                        expr_stack.push(operation)
+                    } 
 				}
 				'=' => {
 					if let (Some(expr), Some(var)) = (expr_stack.pop(), expr_stack.pop()) {
@@ -145,8 +138,7 @@ impl Root {
 		}
 		
 		if !expr_stack.is_empty() {
-			//Gar nicht sicher welcher Typ von Error hier sein muss
-			return Err(Error::Semantic);
+			return Err(Error::Syntax);
 		} else {
 			Ok(Root { stmt_list })
 		}
