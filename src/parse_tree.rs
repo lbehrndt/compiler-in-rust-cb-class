@@ -117,8 +117,13 @@ impl Root {
                             _ => unreachable!(), // Shouldn't happen
                         };
                         expr_stack.push(operation)
-                    } 
+                    } else {
+
+						return Err(Error::Syntax);
+						
+					}
 				}
+				
 				'=' => {
 					if let (Some(expr), Some(var)) = (expr_stack.pop(), expr_stack.pop()) {
 						if let Expr::Var(c) = var {
