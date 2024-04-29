@@ -98,27 +98,43 @@ impl Root {
 			match c {
 				c if c.is_whitespace() => {}
 				c if c.is_digit(10) => {
-					todo!("Ziffer in Zahl konvertieren und auf den Stapel legen")
+					if let Some(digit) = c.to_digit(10) {
+						expr_stack.push(Expr::Int(digit as i64));
+					} 
 				}
 				c if c.is_ascii_lowercase() => {
-					todo!("Variablenname auf den Stapel legen")
+					expr_stack.push(Expr::Var(c));
 				}
-				'+' => {
-					todo!("Additionsknoten auf den Stapel legen")
+
+				'+' | '-' | '*' | '/' => {
+                    // first popped is right to assert correct non-commutative operations
+                    if let (Some(rhs), Some(lhs)) = (expr_stack.pop(), expr_stack.pop()) {
+                        let operation = match c {
+                            '+' => Expr::Add(Box::new(lhs), Box::new(rhs)),
+                            '-' => Expr::Sub(Box::new(lhs), Box::new(rhs)),
+                            '*' => Expr::Mul(Box::new(lhs), Box::new(rhs)),
+                            '/' => Expr::Div(Box::new(lhs), Box::new(rhs)),
+                            _ => unreachable!(), // Shouldn't happen
+                        };
+                        expr_stack.push(operation)
+                    } else {
+
+						return Err(Error::Syntax);
+						
+					}
 				}
-				'-' => {
-					todo!("Subtraktionsknoten auf den Stapel legen")
-				}
-				'*' => {
-					todo!("Multiplikationsknoten auf den Stapel legen")
-				}
-				'/' => {
-					todo!("Divisionsknoten auf den Stapel legen")
-				}
+				
 				'=' => {
-					todo!("Zuweisungsknoten auf den Stapel legen");
+					if let (Some(expr), Some(var)) = (expr_stack.pop(), expr_stack.pop()) {
+						if let Expr::Var(c) = var {
+							stmt_list.push(Stmt::Set(c, expr));
+						}
+						else {
+							return Err(Error::Semantic);
+						}
+					}
 				}
-				_ => todo!("geeigneten Fehlercode zurückgeben"),
+				_ => return Err(Error::Lexical),
 			}
 		}
 		
@@ -127,7 +143,7 @@ impl Root {
 		}
 		
 		if !expr_stack.is_empty() {
-			todo!("geeigneten Fehlercode zurückgeben")
+			return Err(Error::Syntax);
 		} else {
 			Ok(Root { stmt_list })
 		}

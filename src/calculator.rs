@@ -34,11 +34,43 @@ pub struct Calculator {
 }
 
 impl Calculator {
-	/// Evaluates the entire parse tree starting from a [`Root`] and returns the
-	/// result of the last expression evaluated.
-	pub fn calc(&mut self, _t: &Root) -> i64 {
-		todo!("Ergebnis durch Ablaufen des Baums bestimmen")
-	}
+    /// Evaluates the entire parse tree starting from a [`Root`] and returns the
+    /// result of the last expression evaluated.
+    pub fn calc(&mut self, root: &Root) -> i64 {
+        let mut result = 0;
+
+        for stmt in &root.stmt_list {
+            match stmt {
+                Stmt::Expr(expr) => {
+                    result = self.eval_expr(expr);
+                }
+                Stmt::Set(_, expr) => {
+                    result = self.eval_expr(expr);
+                }
+            }
+        }
+
+        result
+    }
+
+    /// Recursively evaluates an expression and returns the result.
+    fn eval_expr(&self, expr: &Expr) -> i64 {
+        match expr {
+            Expr::Int(num) => *num,
+            Expr::Var(_) => panic!("Variable found during evaluation"), // Variables should be evaluated during parsing
+            Expr::Add(lhs, rhs) => self.eval_expr(lhs) + self.eval_expr(rhs),
+            Expr::Sub(lhs, rhs) => self.eval_expr(lhs) - self.eval_expr(rhs),
+            Expr::Mul(lhs, rhs) => self.eval_expr(lhs) * self.eval_expr(rhs),
+            Expr::Div(lhs, rhs) => {
+                let dividend = self.eval_expr(lhs);
+                let divisor = self.eval_expr(rhs);
+                if divisor == 0 {
+                    panic!("attempt to divide by zero");
+                }
+                dividend / divisor
+            }
+        }
+    }
 }
 
 impl Visitor for Calculator {
