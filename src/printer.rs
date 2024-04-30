@@ -44,58 +44,126 @@ use crate::parse_tree::*;
 /// ```
 #[derive(Default)]
 pub struct Printer {
-	// TODO: eventuell notwendige Attribute aufnehmen
+    infix_notation: String,
 }
 
 impl Printer {
-	/// Folds the entire parse tree starting from a [`Root`] object into a
-	/// single string.
-	///
-	/// Traverses the tree, visiting each statement and expression to generate
-	/// formatted strings, and then concatenates these strings into a single
-	/// result separated by newlines.
-	pub fn format(&mut self, _t: &Root) -> String {
-		todo!("Zeichenkette durch Ablaufen des Baums bestimmen")
-	}
+    /// Folds the entire parse tree starting from a [`Root`] object into a
+    /// single string.
+    ///
+    /// Traverses the tree, visiting each statement and expression to generate
+    /// formatted strings, and then concatenates these strings into a single
+    /// result separated by newlines.
+    pub fn format(&mut self, _t: &Root) -> String {
+        self.visit_root(_t);
+        self.infix_notation.clone()
+    }
 }
 
 impl Visitor for Printer {
-	// TODO: relevante Methoden überschreiben
+    /// Visits the root of the parse tree, iterating through the statement list and
+    /// visiting each statement.
+    fn visit_root(&mut self, root: &Root) {
+        for (i, stmt) in root.stmt_list.iter().enumerate() {
+            self.visit_stmt(stmt);
+            if i + 1 < root.stmt_list.len() {
+                self.infix_notation += "\n";
+            }
+        }
+    }
+
+    /// Visits a statement, appending its infix representation to the `infix_notation` string.
+    ///
+    /// ## Arguments
+    ///
+    /// * `stmt` - The stmt node to be visited.
+    fn visit_stmt(&mut self, stmt: &Stmt) {
+        match *stmt {
+            Stmt::Expr(ref e) => self.visit_expr(e),
+            Stmt::Set(ref var, ref expr) => {
+                self.infix_notation += &var.to_string();
+                self.infix_notation += "=";
+                self.visit_expr(expr);
+            }
+        }
+    }
+
+    /// Visits an expression, appending its infix representation to the `infix_notation` string.
+    ///
+    /// ## Arguments
+    ///
+    /// * `expr` - The expression node to be visited.
+    fn visit_expr(&mut self, expr: &Expr) {
+        match *expr {
+            Expr::Int(i) => self.infix_notation += &i.to_string(),
+            Expr::Var(v) => self.infix_notation += &v.to_string(),
+            Expr::Add(ref lhs, ref rhs)
+            | Expr::Sub(ref lhs, ref rhs)
+            | Expr::Mul(ref lhs, ref rhs)
+            | Expr::Div(ref lhs, ref rhs) => {
+                self.infix_notation += "(";
+                self.visit_expr(lhs);
+                self.infix_notation += match expr {
+                    Expr::Add(_, _) => "+",
+                    Expr::Sub(_, _) => "-",
+                    Expr::Mul(_, _) => "*",
+                    Expr::Div(_, _) => "/",
+                    _ => unreachable!(),
+                };
+                self.visit_expr(rhs);
+                self.infix_notation += ")";
+            }
+        }
+    }
 }
 
 // unit-tests
 
 #[cfg(test)]
 mod tests {
-	use super::*;
-	
-	#[test]
-	fn add() {
-		let tree = Root::from_stmt(Stmt::add(4,2));
-		assert_eq!(Printer::default().format(&tree), "(4+2)");
-	}
-	
-	#[test]
-	fn sub() {
-		let tree = Root::from_stmt(Stmt::sub(4,2));
-		assert_eq!(Printer::default().format(&tree), "(4-2)");
-	}
-	
-	#[test]
-	fn mul() {
-		let tree = Root::from_stmt(Stmt::mul(4,2));
-		assert_eq!(Printer::default().format(&tree), "(4*2)");
-	}
-	
-	#[test]
-	fn div() {
-		let tree = Root::from_stmt(Stmt::div(4,2));
-		assert_eq!(Printer::default().format(&tree), "(4/2)");
-	}
-	
-	#[test]
-	fn set() {
-		let tree = Root::from_stmt(Stmt::set('a',1));
-		assert_eq!(Printer::default().format(&tree), "a=1");
-	}
+    use super::*;
+
+    #[test]
+    fn add() {
+        let tree = Root::from_stmt(Stmt::add(4, 2));
+        assert_eq!(Printer::default().format(&tree), "(4+2)");
+    }
+
+    #[test]
+    fn sub() {
+        let tree = Root::from_stmt(Stmt::sub(4, 2));
+        assert_eq!(Printer::default().format(&tree), "(4-2)");
+    }
+
+    #[test]
+    fn mul() {
+        let tree = Root::from_stmt(Stmt::mul(4, 2));
+        assert_eq!(Printer::default().format(&tree), "(4*2)");
+    }
+
+    #[test]
+    fn div() {
+        let tree = Root::from_stmt(Stmt::div(4, 2));
+        assert_eq!(Printer::default().format(&tree), "(4/2)");
+    }
+
+    #[test]
+    fn set() {
+        let tree = Root::from_stmt(Stmt::set('a', 1));
+        assert_eq!(Printer::default().format(&tree), "a=1");
+    }
+
+    #[test]
+    fn use_var() {
+        let tree = Root {
+            stmt_list: vec![
+                Stmt::set('a', 2),
+                Stmt::Expr(Expr::Add(
+                    Box::new(Expr::Var('a')),
+                    Box::new(Expr::Var('1')),
+                )),
+            ],
+        };
+        assert_eq!(Printer::default().format(&tree), "a=2\n(a+1)");
+    }
 }
