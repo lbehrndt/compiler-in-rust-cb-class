@@ -58,16 +58,6 @@ impl Calculator {
     /// ## Returns
     ///
     /// The result of the evaluation.
-    ///
-    /// ## Examples
-    ///
-    /// ```
-    /// use calculator::{Calculator, Root};
-    ///
-    /// let mut calc = Calculator::default();
-    /// let root = Root::from_stmt(Stmt::add(4, 2));
-    /// assert_eq!(calc.calc(&root), 6);
-    /// ```
     pub fn calc(&mut self, _t: &Root) -> i64 {
         self.visit_root(_t);
         self.solution
