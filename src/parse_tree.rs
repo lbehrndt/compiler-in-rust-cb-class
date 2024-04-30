@@ -90,51 +90,76 @@ impl Root {
     ///
     /// [reverse polish notation]: https://en.wikipedia.org/wiki/Reverse_Polish_notation
     pub fn from_str(str: &str) -> Result<Self, Error> {
-        // TODO: Funktionskörper vervollständigen
-        let mut stmt_list = Vec::new();
-        let mut expr_stack = Vec::new();
+        // statements
+        let mut stmt_list: Vec<Stmt> = Vec::new();
+        // expressions
+        let mut expr_stack: Vec<Expr> = Vec::new();
 
-        for c in str.chars() {
-            match c {
-                c if c.is_whitespace() => {}
-                c if c.is_digit(10) => {
-                    todo!("Ziffer in Zahl konvertieren und auf den Stapel legen")
+        for token in str.chars() {
+            match token {
+                // Ignore whitespace
+                token if token.is_whitespace() => {}
+
+                // Parse integer literals
+                token if token.is_digit(10) => {
+                    if let Some(int) = token.to_digit(10) {
+                        expr_stack.push(Expr::Int(int as i64));
+                    }
                 }
-                c if c.is_ascii_lowercase() => {
-                    todo!("Variablenname auf den Stapel legen")
+                // Parse variable names
+                token if token.is_ascii_lowercase() => expr_stack.push(Expr::Var(token)),
+
+                // Parse operation expressions
+                '+' | '-' | '*' | '/' => {
+                    // first popped is right to assert correct non-commutative operations
+                    if let (Some(rhs), Some(lhs)) = (expr_stack.pop(), expr_stack.pop()) {
+                        let operation = match token {
+                            '+' => Expr::Add(Box::new(lhs), Box::new(rhs)),
+                            '-' => Expr::Sub(Box::new(lhs), Box::new(rhs)),
+                            '*' => Expr::Mul(Box::new(lhs), Box::new(rhs)),
+                            '/' => Expr::Div(Box::new(lhs), Box::new(rhs)),
+							/* Because we don't have a token type for only operations and are not allowed to add one afaik. */
+                            _ => unreachable!(), // Shouldn't happen
+                        };
+                        expr_stack.push(operation)
+                    } else {
+                        return Err(Error::Syntax);
+                    }
                 }
-                '+' => {
-                    todo!("Additionsknoten auf den Stapel legen")
-                }
-                '-' => {
-                    todo!("Subtraktionsknoten auf den Stapel legen")
-                }
-                '*' => {
-                    todo!("Multiplikationsknoten auf den Stapel legen")
-                }
-                '/' => {
-                    todo!("Divisionsknoten auf den Stapel legen")
-                }
+
+                // Parse variable assignments
                 '=' => {
-                    todo!("Zuweisungsknoten auf den Stapel legen");
+                    // first popped is right to assert correct variable assignemnt
+                    if let (Some(rhs), Some(Expr::Var(lhs))) = (expr_stack.pop(), expr_stack.pop())
+                    {
+                        // an assignemnt is not defined as an expression
+                        stmt_list.push(Stmt::Set(lhs, rhs));
+                    } else {
+                        return Err(Error::Semantic);
+                    }
                 }
-                _ => todo!("geeigneten Fehlercode zurückgeben"),
+
+                // Handle unrecognized characters as lexical errors
+                _ => return Err(Error::Lexical),
             }
         }
 
+        // Push the remaining expression onto the statement list
         if let Some(expr) = expr_stack.pop() {
             stmt_list.push(Stmt::Expr(expr));
         }
 
+        // Check for any remaining expressions in the stack (syntax error)
         if !expr_stack.is_empty() {
-            todo!("geeigneten Fehlercode zurückgeben")
+            return Err(Error::Syntax);
         } else {
             Ok(Root { stmt_list })
         }
     }
 }
 
-/// Provides a visitor for traversing the parse tree.
+/// Provides a visitor for traversing the parse tree following the Depth-first search
+/// algorithm.
 ///
 /// This trait should be implemented by any type that needs to perform
 /// operations on the parse tree.
