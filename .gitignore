@@ -1,9 +1,9 @@
 # Compiled files
-/target/
+*/target/
 
 # Dependency directories
-Cargo.lock
-/vendor/
+*/Cargo.lock
+*/vendor/
 
 # IDE/Editor specific files
 .vscode/
